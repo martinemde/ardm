@@ -626,8 +626,13 @@ module Ardm
     #
     # @api private
     def get!(resource)
-      #resource.instance_variable_get(instance_variable_name)
-      resource.send :read_attribute, field
+      set_default_value(resource)
+      resource.send(:read_attribute, field)
+    end
+
+    def set_default_value(resource)
+      return if loaded?(resource) || !default?
+      set(resource, default_for(resource))
     end
 
     # Provides a standardized setter method for the property
@@ -659,9 +664,7 @@ module Ardm
     #
     # @api private
     def set!(resource, value)
-      #resource.instance_variable_set(instance_variable_name, value)
-      resource.send :write_attribute, field, value
-      resource.send :read_attribute, field
+      resource.instance_variable_set(instance_variable_name, value)
     end
 
     # Check if the attribute corresponding to the property is loaded
@@ -675,7 +678,6 @@ module Ardm
     # @api private
     def loaded?(resource)
       resource.instance_variable_defined?(instance_variable_name)
-      true
     end
 
     # @api private

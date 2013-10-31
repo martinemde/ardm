@@ -203,8 +203,8 @@ module Ardm
           property_module.module_eval <<-RUBY, __FILE__, __LINE__ + 1
             #{reader_visibility}
             def #{name}
-              property = self.class.properties[#{name.inspect}]
-              property ? property.get(self) : nil
+              return #{instance_variable_name} if defined?(#{instance_variable_name})
+              #{instance_variable_name} = attribute_get(#{name.inspect})
             end
           RUBY
 
@@ -231,8 +231,7 @@ module Ardm
           property_module.module_eval <<-RUBY, __FILE__, __LINE__ + 1
             #{writer_visibility}
             def #{writer_name}(value)
-              property = self.class.properties[#{name.inspect}]
-              property.set(self, value)
+              attribute_set(#{name.inspect}, value)
             end
           RUBY
         end

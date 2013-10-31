@@ -25,14 +25,17 @@ module Ardm
 
         # This not the same as read_attribute in AR
         def attribute_get(name)
-          property = self.class.properties[name]
-          property.get(self)
+          if property = self.class.properties[name]
+            property.get(self) || property.set(self, read_attribute(property.field))
+          end
         end
 
         # This not the same as write_attribute in AR
         def attribute_set(name, value)
-          property = self.class.properties[name]
-          property.set(self, value)
+          if property = self.class.properties[name]
+            write_attribute(property.field, value)
+            property.set(self, read_attribute(property.field))
+          end
         end
 
         # Retrieve the key(s) for this resource.
