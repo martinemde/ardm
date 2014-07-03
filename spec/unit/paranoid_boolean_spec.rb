@@ -7,7 +7,7 @@ module ::ParanoidBooleanBlog
     property :deleted, ParanoidBoolean
     timestamps :at
 
-    before_destroy :before_destroy
+    before(:destroy, :before_destroy)
 
     def before_destroy; end
   end
@@ -50,7 +50,7 @@ describe Ardm::Property::ParanoidBoolean do
         @resource = @model.create
       end
 
-      it { (!!subject).should be_true }
+      it { (!!subject).should be_truthy }
 
       it 'should not delete the resource from the datastore' do
         method(:subject).should_not change { @model.with_deleted.size }.from(1)
@@ -94,7 +94,7 @@ describe Ardm::Property::ParanoidBoolean do
         @resource = @model.create
       end
 
-      it { (!!subject).should be_true }
+      it { (!!subject).should be_truthy }
 
       it 'should delete the resource from the datastore' do
         method(:subject).should change { @model.with_deleted.size }.from(1).to(0)

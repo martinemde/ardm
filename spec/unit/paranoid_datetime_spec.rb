@@ -8,7 +8,7 @@ module ::ParanoidDateTimeBlog
     property :deleted_at, ParanoidDateTime
     timestamps :at
 
-    before_destroy :before_destroy
+    before(:destroy, :before_destroy)
 
     def before_destroy; end
   end
@@ -26,7 +26,7 @@ describe Ardm::Property::ParanoidDateTime do
 
   describe 'Model#destroy' do
     before do
-      pending 'Does not work with < 1.8.7, see if backports fixes it' if RUBY_VERSION < '1.8.7'
+      skip 'Does not work with < 1.8.7, see if backports fixes it' if RUBY_VERSION < '1.8.7'
     end
 
     subject { @resource.destroy }
@@ -56,7 +56,7 @@ describe Ardm::Property::ParanoidDateTime do
         @resource = @model.create
       end
 
-      it { (!!subject).should be_true }
+      it { (!!subject).should be_truthy }
 
       it 'should not delete the resource from the datastore' do
         method(:subject).should_not change { @model.with_deleted.size }.from(1)
@@ -100,7 +100,7 @@ describe Ardm::Property::ParanoidDateTime do
         @resource = @model.create
       end
 
-      it { (!!subject).should be_true }
+      it { (!!subject).should be_truthy }
 
       it 'should delete the resource from the datastore' do
         method(:subject).should change { @model.with_deleted.size }.from(1).to(0)
@@ -119,7 +119,7 @@ describe Ardm::Property::ParanoidDateTime do
 
   describe 'Model#with_deleted' do
     before do
-      pending 'Does not work with < 1.8.7, see if backports fixes it' if RUBY_VERSION < '1.8.7'
+      skip 'Does not work with < 1.8.7, see if backports fixes it' if RUBY_VERSION < '1.8.7'
       @resource = @model.create
       @resource.destroy
     end

@@ -14,7 +14,11 @@ module Ardm
 
       JSON = Json
 
+      class_attribute :on_finalize
+      self.on_finalize = []
+
       def self.finalize
+        on_finalize.each { |f| f.call }
       end
 
       def self.execute_sql(sql)
@@ -24,8 +28,8 @@ module Ardm
       def self.property(property_name, property_type, options={})
         prop = super
         begin
-        attr_accessible prop.name
-        attr_accessible prop.field
+          attr_accessible prop.name
+          attr_accessible prop.field
         rescue => e
           puts "WARNING: Error silenced. FIXME before release.\n#{e}" unless $attr_accessible_warning
           $attr_accessible_warning = true
@@ -75,6 +79,10 @@ module Ardm
         delete_all
       end
 
+      def destroy
+        self.class.delete(self.send(self.class.primary_key))
+      end
+
       def new?
         new_record?
       end
@@ -83,12 +91,12 @@ module Ardm
         !new_record?
       end
 
-      def save_self(*)
-        save
+      def save_self(*args)
+        save(*args)
       end
 
-      def save
-        super || (raise_on_save_failure && raise(Ardm::SaveFailureError, "Save Failed"))
+      def save!(*args)
+        save(*args) || (raise_on_save_failure && raise(Ardm::SaveFailureError, "Save Failed"))
       end
 
       def update(*a)

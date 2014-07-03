@@ -1,4 +1,4 @@
-share_examples_for 'Finder Interface' do
+shared_examples 'Finder Interface' do
   before do
     %w[ @article_model @article @other @articles ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_defined?(ivar)
@@ -12,16 +12,20 @@ share_examples_for 'Finder Interface' do
 
     @do_adapter = defined?(Ardm::Adapters::DataObjectsAdapter) && @adapter.kind_of?(Ardm::Adapters::DataObjectsAdapter)
 
-    #@many_to_many = @articles.kind_of?(Ardm::Associations::ManyToMany::Collection)
+    @many_to_many = false
 
     @skip = @no_join && @many_to_many
   end
 
   before do
-    pending if @skip
+    skip if @skip
   end
 
-  it 'should be Enumerable' do
+  def skip_if(message, condition)
+    skip(message) if condition
+  end
+
+  it 'should be Enumerable', :dm do
     @articles.should be_kind_of(Enumerable)
   end
 
@@ -55,7 +59,7 @@ share_examples_for 'Finder Interface' do
           @return = @resources = @articles.send(method, 5, 5)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -63,7 +67,7 @@ share_examples_for 'Finder Interface' do
           @return.should == @copy.entries.send(method, 5, 5)
         end
 
-        it 'should scope the Collection' do
+        it 'should scope the Collection', :dm do
           @resources.reload.should == @copy.entries.send(method, 5, 5)
         end
       end
@@ -73,7 +77,7 @@ share_examples_for 'Finder Interface' do
           @return = @resources = @articles.send(method, 5..10)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -81,7 +85,7 @@ share_examples_for 'Finder Interface' do
           @return.should == @copy.entries.send(method, 5..10)
         end
 
-        it 'should scope the Collection' do
+        it 'should scope the Collection', :dm do
           @resources.reload.should == @copy.entries.send(method, 5..10)
         end
       end
@@ -107,7 +111,7 @@ share_examples_for 'Finder Interface' do
           @return = @resources = @articles.send(method, -5, 5)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -115,7 +119,7 @@ share_examples_for 'Finder Interface' do
           @return.should == @copy.entries.send(method, -5, 5)
         end
 
-        it 'should scope the Collection' do
+        it 'should scope the Collection', :dm do
           @resources.reload.should == @copy.entries.send(method, -5, 5)
         end
       end
@@ -125,7 +129,7 @@ share_examples_for 'Finder Interface' do
           @return = @resources = @articles.send(method, -5..-2)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -133,7 +137,7 @@ share_examples_for 'Finder Interface' do
           @return.to_a.should == @copy.entries.send(method, -5..-2)
         end
 
-        it 'should scope the Collection' do
+        it 'should scope the Collection', :dm do
           @resources.reload.should == @copy.entries.send(method, -5..-2)
         end
       end
@@ -143,7 +147,7 @@ share_examples_for 'Finder Interface' do
           @return = @resources = @articles.send(method, 0...0)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -168,7 +172,7 @@ share_examples_for 'Finder Interface' do
         end
       end
 
-      describe 'with an offset and length not within the Collection' do
+      describe 'with an offset and length not within the Collection', :dm do
         before do
           @return = @articles.send(method, 99, 1)
         end
@@ -182,7 +186,7 @@ share_examples_for 'Finder Interface' do
         end
       end
 
-      describe 'with a range not within the Collection' do
+      describe 'with a range not within the Collection', :dm do
         before do
           @return = @articles.send(method, 99..100)
         end
@@ -208,7 +212,7 @@ share_examples_for 'Finder Interface' do
         @return = @collection = @articles.all
       end
 
-      it 'should return a Collection' do
+      it 'should return a Collection', :dm do
         @return.should be_kind_of(Ardm::Collection)
       end
 
@@ -220,11 +224,11 @@ share_examples_for 'Finder Interface' do
         @collection.should == @articles.entries
       end
 
-      it 'should not have a Query the same as the original' do
+      it 'should not have a Query the same as the original', :dm do
         @return.query.should_not equal(@articles.query)
       end
 
-      it 'should have a Query equal to the original' do
+      it 'should have a Query equal to the original', :dm do
         @return.query.should eql(@articles.query)
       end
 
@@ -241,7 +245,7 @@ share_examples_for 'Finder Interface' do
         @return = @articles.all(:body => [ 'New Article' ])
       end
 
-      it 'should return a Collection' do
+      it 'should return a Collection', :dm do
         @return.should be_kind_of(Ardm::Collection)
       end
 
@@ -253,18 +257,18 @@ share_examples_for 'Finder Interface' do
         @return.should == [ @new ]
       end
 
-      it 'should have a different query than original Collection' do
+      it 'should have a different query than original Collection', :dm do
         @return.query.should_not equal(@articles.query)
       end
 
       it 'should scope the Collection' do
-        @return.reload.should == @copy.entries.select { |resource| resource.body == 'New Article' }
+        @return.should == @copy.entries.select { |resource| resource.body == 'New Article' }
       end
     end
 
     describe 'with a query using raw conditions' do
       before do
-        pending unless defined?(Ardm::Adapters::DataObjectsAdapter) && @adapter.kind_of?(Ardm::Adapters::DataObjectsAdapter)
+        skip unless defined?(Ardm::Adapters::DataObjectsAdapter) && @adapter.kind_of?(Ardm::Adapters::DataObjectsAdapter)
       end
 
       before do
@@ -274,7 +278,7 @@ share_examples_for 'Finder Interface' do
         @return = @articles.all(:conditions => [ 'subtitle = ?', 'New Article' ])
       end
 
-      it 'should return a Collection' do
+      it 'should return a Collection', :dm do
         @return.should be_kind_of(Ardm::Collection)
       end
 
@@ -295,7 +299,7 @@ share_examples_for 'Finder Interface' do
       end
     end
 
-    describe 'with a query that is out of range' do
+    describe 'with a query that is out of range', :dm do
       it 'should raise an exception' do
         lambda {
           @articles.all(:limit => 10).all(:offset => 10)
@@ -309,7 +313,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:original => @original.attributes)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -317,7 +321,7 @@ share_examples_for 'Finder Interface' do
           @return.should == [ @article ]
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
       end
@@ -327,7 +331,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:original => @original)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -335,7 +339,7 @@ share_examples_for 'Finder Interface' do
           @return.should == [ @article ]
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
       end
@@ -349,7 +353,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:original => @collection)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -357,7 +361,7 @@ share_examples_for 'Finder Interface' do
           @return.should == [ @article ]
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
 
@@ -368,7 +372,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:original => [])
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -376,7 +380,7 @@ share_examples_for 'Finder Interface' do
           @return.should be_empty
         end
 
-        it 'should not have a valid query' do
+        it 'should not have a valid query', :dm do
           @return.query.should_not be_valid
         end
       end
@@ -386,26 +390,20 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:original => nil)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
-        if respond_to?(:model?) && model?
-          it 'should be expected Resources' do
-            @return.should == [ @original, @other ]
-          end
-        else
-          it 'should be an empty Collection' do
-            @return.should be_empty
-          end
+        it 'should be expected Resources' do
+          @return.should == [ @original ]
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
 
         it 'should be equivalent to negated collection query' do
-          pending_if 'Update RDBMS to match ruby behavior', @do_adapter && @articles.kind_of?(Ardm::Record) do
+          skip_if 'Update RDBMS to match ruby behavior', @do_adapter && @articles.kind_of?(Ardm::Record) do
             # NOTE: the second query will not match any articles where original_id
             # is nil, while the in-memory/yaml adapters will.  RDBMS will explicitly
             # filter out NULL matches because we are matching on a non-NULL value,
@@ -420,7 +418,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:original.not => nil)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -428,12 +426,12 @@ share_examples_for 'Finder Interface' do
           @return.should == [ @article ]
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
 
         it 'should be equivalent to collection query' do
-          @return.should == @articles.all(:original => @article_model.all)
+          expect(@return).to eq(@articles.all(:original => @article_model.all))
         end
       end
     end
@@ -448,7 +446,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:previous => @new.attributes)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -456,7 +454,7 @@ share_examples_for 'Finder Interface' do
           @return.should == [ @article ]
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
       end
@@ -466,7 +464,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:previous => @new)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -474,7 +472,7 @@ share_examples_for 'Finder Interface' do
           @return.should == [ @article ]
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
       end
@@ -488,7 +486,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:previous => @collection)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -496,7 +494,7 @@ share_examples_for 'Finder Interface' do
           @return.should == [ @article ]
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
       end
@@ -506,7 +504,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:previous => [])
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -514,7 +512,7 @@ share_examples_for 'Finder Interface' do
           @return.should be_empty
         end
 
-        it 'should not have a valid query' do
+        it 'should not have a valid query', :dm do
           @return.query.should_not be_valid
         end
       end
@@ -524,7 +522,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:previous => nil)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -538,11 +536,17 @@ share_examples_for 'Finder Interface' do
           end
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
 
         it 'should be equivalent to negated collection query' do
+          # SELECT "id", "title", "original_id" FROM "articles" WHERE NOT("id" IN (SELECT "original_id" FROM "articles" WHERE NOT("original_id" IS NULL))) ORDER BY "id"
+          # ar:
+          # SELECT "articles".* FROM "articles" WHERE ("articles"."original_id" IS NOT NULL)
+          # SELECT "articles".* FROM "articles" WHERE ("articles"."id" NOT IN (SELECT original_id FROM "articles" WHERE ("articles"."original_id" IS NOT NULL)))
+          puts "@return:#{@return.to_sql}"
+          puts "negated:#{@articles.all(:previous.not => @article_model.all(:original.not => nil)).to_sql}"
           @return.should == @articles.all(:previous.not => @article_model.all(:original.not => nil))
         end
       end
@@ -552,21 +556,15 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:previous.not => nil)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
-        if respond_to?(:model?) && model?
-          it 'should be expected Resources' do
-            @return.should == [ @original, @article ]
-          end
-        else
-          it 'should be expected Resources' do
-            @return.should == [ @article ]
-          end
+        it 'should be expected Resources' do
+          @return.should == [ @original, @article ]
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
 
@@ -586,7 +584,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:revisions => @new.attributes)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -594,7 +592,7 @@ share_examples_for 'Finder Interface' do
           @return.should == [ @article ]
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
       end
@@ -604,7 +602,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:revisions => @new)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -612,7 +610,7 @@ share_examples_for 'Finder Interface' do
           @return.should == [ @article ]
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
       end
@@ -626,7 +624,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:revisions => @collection)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -634,7 +632,7 @@ share_examples_for 'Finder Interface' do
           @return.should == [ @article ]
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
       end
@@ -644,7 +642,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:revisions => [])
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -662,7 +660,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:revisions => nil)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -672,11 +670,12 @@ share_examples_for 'Finder Interface' do
           end
         else
           it 'should be expected Resources' do
+            # SELECT "id", "title", "original_id" FROM "articles" WHERE NOT("id" IN (SELECT "original_id" FROM "articles" WHERE NOT("original_id" IS NULL))) ORDER BY "id"
             @return.should == [ @new ]
           end
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
 
@@ -690,21 +689,15 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:revisions.not => nil)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
-        if respond_to?(:model?) && model?
-          it 'should be expected Resources' do
-            @return.should == [ @original, @article ]
-          end
-        else
-          it 'should be expected Resources' do
-            @return.should == [ @article ]
-          end
+        it 'should be expected Resources' do
+          @return.should == [ @original, @article ]
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
 
@@ -724,17 +717,17 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:publications => @publication.attributes)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
         it 'should be expected Resources' do
-          pending 'TODO' do
+          skip 'TODO' do
             @return.should == [ @article ]
           end
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
       end
@@ -744,17 +737,17 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:publications => @publication)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
         it 'should be expected Resources' do
-          pending 'TODO' do
+          skip 'TODO' do
             @return.should == [ @article ]
           end
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
       end
@@ -768,17 +761,17 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:publications => @collection)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
         it 'should be expected Resources' do
-          pending 'TODO' do
+          skip 'TODO' do
             @return.should == [ @article ]
           end
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
       end
@@ -788,7 +781,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:publications => [])
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -806,17 +799,17 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:publications => nil)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
         it 'should be empty' do
-          pending 'TODO' do
+          skip 'TODO' do
             @return.should be_empty
           end
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
 
@@ -830,17 +823,17 @@ share_examples_for 'Finder Interface' do
           @return = @articles.all(:publications.not => nil)
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
         it 'should be expected Resources' do
-          pending 'TODO' do
+          skip 'TODO' do
             @return.should == [ @article ]
           end
         end
 
-        it 'should have a valid query' do
+        it 'should have a valid query', :dm do
           @return.query.should be_valid
         end
 
@@ -936,26 +929,26 @@ share_examples_for 'Finder Interface' do
   end
 
   it 'should respond to a belongs_to relationship method with #method_missing' do
-    pending_if 'Model#method_missing should delegate to relationships', @articles.kind_of?(Class) do
+    skip_if 'Model#method_missing should delegate to relationships', @articles.kind_of?(Class) do
       @articles.should respond_to(:original)
     end
   end
 
   it 'should respond to a has n relationship method with #method_missing' do
-    pending_if 'Model#method_missing should delegate to relationships', @articles.kind_of?(Class) do
+    skip_if 'Model#method_missing should delegate to relationships', @articles.kind_of?(Class) do
       @articles.should respond_to(:revisions)
     end
   end
 
   it 'should respond to a has 1 relationship method with #method_missing' do
-    pending_if 'Model#method_missing should delegate to relationships', @articles.kind_of?(Class) do
+    skip_if 'Model#method_missing should delegate to relationships', @articles.kind_of?(Class) do
       @articles.should respond_to(:previous)
     end
   end
 
   describe '#method_missing' do
     before do
-      pending 'Model#method_missing should delegate to relationships' if @articles.kind_of?(Class)
+      skip 'Model#method_missing should delegate to relationships' if @articles.kind_of?(Class)
     end
 
     describe 'with a belongs_to relationship method' do
@@ -967,7 +960,7 @@ share_examples_for 'Finder Interface' do
         end
       end
 
-      it 'should return a Collection' do
+      it 'should return a Collection', :dm do
         @return.should be_kind_of(Ardm::Collection)
       end
 
@@ -997,7 +990,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.previous
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -1016,7 +1009,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.previous(:fields => [ :id ])
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -1055,7 +1048,7 @@ share_examples_for 'Finder Interface' do
           @return = @collection = @articles.revisions
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -1073,7 +1066,7 @@ share_examples_for 'Finder Interface' do
           @return = @collection = @articles.revisions(:fields => [ :id ])
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
@@ -1106,18 +1099,18 @@ share_examples_for 'Finder Interface' do
           @return = @collection = @articles.publications
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
         it 'should return expected Collection' do
-          pending_if @no_join do
+          skip_if @no_join do
             @collection.should == [ @publication1, @publication2 ]
           end
         end
 
         it 'should set the association for each Resource' do
-          pending_if @no_join do
+          skip_if @no_join do
             @articles.map { |resource| resource.publications }.should == [ [ @publication1 ], [ @publication2 ] ]
           end
         end
@@ -1128,12 +1121,12 @@ share_examples_for 'Finder Interface' do
           @return = @collection = @articles.publications(:fields => [ :id ])
         end
 
-        it 'should return a Collection' do
+        it 'should return a Collection', :dm do
           @return.should be_kind_of(Ardm::Collection)
         end
 
         it 'should return expected Collection' do
-          pending_if @no_join do
+          skip_if @no_join do
             @collection.should == [ @publication1, @publication2 ]
           end
         end
@@ -1145,7 +1138,7 @@ share_examples_for 'Finder Interface' do
         end
 
         it 'should set the association for each Resource' do
-          pending_if @no_join do
+          skip_if @no_join do
             @articles.map { |resource| resource.publications }.should == [ [ @publication1 ], [ @publication2 ] ]
           end
         end
