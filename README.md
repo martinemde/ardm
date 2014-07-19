@@ -1,3 +1,7 @@
+
+**Please see [engineyard/ardm](https://github.com/engineyard/ardm). I transfered this project to Engine Yard to give it more chance of success.**
+
+
 # Ardm
 
 ActiveRecord plugin to provide a smooth migration from DataMapper to ActiveRecord.
